@@ -58,7 +58,7 @@ func (l LockerDb) DoLock(name string) bool {
 func (l LockerDb) Insert(name string) bool {
 	s := &ShedLock{
 		Name:      name,
-		LockUntil: time.Now().Add(time.Duration(l.LockTime) * time.Hour),
+		LockUntil: time.Now().Add(time.Duration(l.LockTime) * time.Minute),
 		LockedAt:  time.Now(),
 		LockedBy:  LocalHostName(),
 	}
