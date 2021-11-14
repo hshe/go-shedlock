@@ -70,5 +70,5 @@ func TestLockerDb_Add(t *testing.T) {
 			fmt.Println("test...")
 		})
 	}()
-	select {}
+	//select {}
 }
