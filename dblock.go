@@ -31,6 +31,7 @@ func (l LockerDb) Add(name string, spec string, cmd func()) error {
 	c := cron.New()
 	err := c.AddFunc(spec, func() {
 		if l.DoLock(name) {
+			defer l.Unlock(name)
 			cmd()
 		}
 	})
@@ -91,5 +92,10 @@ func (l LockerDb) Update(name string) bool {
 }
 
 func (l LockerDb) Unlock(name string) bool {
-	panic("implement me")
+	now := time.Now()
+	s := &ShedLock{
+		LockUntil: now,
+	}
+	l.db.Table("shedlock").Where("name=?", name).Where("lock_until>?", now).Updates(&s)
+	return true
 }
