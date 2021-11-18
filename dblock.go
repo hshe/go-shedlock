@@ -59,7 +59,7 @@ func (l LockerDb) DoLock(name string) bool {
 func (l LockerDb) Insert(name string) bool {
 	s := &ShedLock{
 		Name:      name,
-		LockUntil: time.Now().Add(time.Duration(l.LockTime) * time.Minute),
+		LockUntil: time.Now().Add(time.Duration(l.LockTime) * time.Second),
 		LockedAt:  time.Now(),
 		LockedBy:  LocalHostName(),
 	}
@@ -82,7 +82,7 @@ func (l LockerDb) Update(name string) bool {
 		Name:      name,
 		LockedAt:  now,
 		LockedBy:  LocalHostName(),
-		LockUntil: now.Add(time.Duration(l.LockTime) * time.Minute),
+		LockUntil: now.Add(time.Duration(l.LockTime) * time.Second),
 	}
 	update := l.db.Table("shedlock").Where("name=?", name).Where("lock_until<=?", now).Updates(&s)
 	if update.Error == nil && update.RowsAffected > 0 {
