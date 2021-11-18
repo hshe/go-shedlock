@@ -24,7 +24,10 @@ func NewLockerDbFor(db *gorm.DB, lockTime int) *LockerDb {
 }
 
 func NewLockerDb(db *gorm.DB) *LockerDb {
-	return &LockerDb{db: db, LockTime: 5}
+	return &LockerDb{db: db, LockTime: 20}
+}
+func NewLockerDbWithLockTime(db *gorm.DB, lockFor int) *LockerDb {
+	return &LockerDb{db: db, LockTime: lockFor}
 }
 
 func (l LockerDb) Add(name string, spec string, cmd func()) error {
