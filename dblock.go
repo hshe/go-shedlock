@@ -47,7 +47,7 @@ func (l LockerDb) Adds(schedules []*Schedules) error {
 	for i := range schedules {
 		c.AddFunc(schedules[i].Spec, func() {
 			if l.DoLock(schedules[i].Name) {
-				schedules[i].cmd()
+				schedules[i].Cmd()
 			}
 		})
 	}

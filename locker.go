@@ -54,7 +54,7 @@ type ShedLock struct {
 type Schedules struct {
 	Name     string
 	Spec     string
-	cmd      func()
+	Cmd      func()
 	LockTime int `json:"lock_time" 5min`
 }
 
