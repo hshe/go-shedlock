@@ -44,6 +44,19 @@ func (l LockerDb) AddFun(name string, spec string, cmd func()) error {
 	return err
 }
 
+func (l LockerDb) AddJob(name string, spec string, job cron.Job) error {
+	if l.c == nil {
+		l.c = cron.New()
+	}
+	err := l.c.AddFunc(spec, func() {
+		if l.DoLock(name) {
+			defer l.Unlock(name)
+			job.Run()
+		}
+	})
+	return err
+}
+
 func (l LockerDb) AddSchedules(schedules []*Schedule) error {
 	if l.c == nil {
 		l.c = cron.New()

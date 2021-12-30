@@ -27,6 +27,7 @@ type Schedule struct {
 
 type Locker interface {
 	AddFun(name string, spec string, cmd func()) error
+	AddJob(name string, spec string, job cron.Job) error
 	AddSchedules(schedules []*Schedule) error
 	DoLock(name string) bool
 	Insert(name string) bool
