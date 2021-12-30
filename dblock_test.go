@@ -62,13 +62,14 @@ func TestLockerDb_Add(t *testing.T) {
 		//),
 	})
 	l := NewLockerDb(db)
-	l.Add("bbbbb", "* * * * * ?", func() {
+	l.AddFun("bbbbb", "* * * * * ?", func() {
 		fmt.Println("test...")
 	})
 	go func() {
-		l.Add("bbbbb", "* * * * * ?", func() {
+		l.AddFun("bbbbb", "* * * * * ?", func() {
 			fmt.Println("test...")
 		})
 	}()
+	l.Start()
 	//select {}
 }

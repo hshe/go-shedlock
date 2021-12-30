@@ -16,42 +16,51 @@ import (
 //LockerDb
 type LockerDb struct {
 	db       *gorm.DB
-	LockTime int `json:"lock_time" 5min`
+	LockTime int `json:"lock_time" 20 sec`
+	c        *cron.Cron
 }
 
 func NewLockerDbFor(db *gorm.DB, lockTime int) *LockerDb {
-	return &LockerDb{db: db, LockTime: lockTime}
+	return &LockerDb{db: db, LockTime: lockTime, c: cron.New()}
 }
 
 func NewLockerDb(db *gorm.DB) *LockerDb {
-	return &LockerDb{db: db, LockTime: 20}
+	return &LockerDb{db: db, LockTime: 20, c: cron.New()}
 }
 func NewLockerDbWithLockTime(db *gorm.DB, lockFor int) *LockerDb {
-	return &LockerDb{db: db, LockTime: lockFor}
+	return &LockerDb{db: db, LockTime: lockFor, c: cron.New()}
 }
 
-func (l LockerDb) Add(name string, spec string, cmd func()) error {
-	c := cron.New()
-	err := c.AddFunc(spec, func() {
+func (l LockerDb) AddFun(name string, spec string, cmd func()) error {
+	if l.c == nil {
+		l.c = cron.New()
+	}
+	err := l.c.AddFunc(spec, func() {
 		if l.DoLock(name) {
 			defer l.Unlock(name)
 			cmd()
 		}
 	})
-	c.Start()
 	return err
 }
 
-func (l LockerDb) Adds(schedules []*Schedules) error {
-	c := cron.New()
+func (l LockerDb) AddSchedules(schedules []*Schedule) error {
+	if l.c == nil {
+		l.c = cron.New()
+	}
 	for i := range schedules {
-		c.AddFunc(schedules[i].Spec, func() {
-			if l.DoLock(schedules[i].Name) {
+		l.c.AddFunc(schedules[i].Spec, func() {
+			if !l.DoLock(schedules[i].Name) {
+				return
+			}
+			l.Unlock(schedules[i].Name)
+			if schedules[i].Job == nil {
 				schedules[i].Cmd()
+			} else {
+				schedules[i].Job.Run()
 			}
 		})
 	}
-	c.Start()
 	return nil
 }
 
@@ -73,8 +82,8 @@ func (l LockerDb) Insert(name string) bool {
 	return false
 }
 
-func (l LockerDb) Find(name string) *Schedules {
-	res := &Schedules{}
+func (l LockerDb) Find(name string) *Schedule {
+	res := &Schedule{}
 	l.db.Table("shedlock").Where("locked_by =?", LocalHostName()).Where("name=?", name).Find(&res)
 	return res
 }
@@ -101,4 +110,13 @@ func (l LockerDb) Unlock(name string) bool {
 	}
 	l.db.Table("shedlock").Where("name=?", name).Where("lock_until>?", now).Updates(&s)
 	return true
+}
+
+func (l LockerDb) Start() {
+	l.c.Start()
+}
+
+func (l LockerDb) Stop() {
+	l.c.Stop()
+	l.c = nil
 }
