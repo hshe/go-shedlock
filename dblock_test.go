@@ -6,6 +6,9 @@ import (
 	"github.com/robfig/cron"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"log"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -52,14 +55,14 @@ func stop(cron *cron.Cron) chan bool {
 func TestLockerDb_Add(t *testing.T) {
 	db, _ := gorm.Open(mysql.Open("root:123456@tcp(localhost:3306)/icc311?charset=utf8&parseTime=true&loc=Local"), &gorm.Config{
 		//不打印日志
-		//Logger: logger.New(
-		//	log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-		//	logger.Config{
-		//		SlowThreshold: time.Second,   // 慢 SQL 阈值
-		//		LogLevel:      logger.Silent, // Log level
-		//		Colorful:      false,         // 禁用彩色打印
-		//	},
-		//),
+		Logger: logger.New(
+			log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+			logger.Config{
+				SlowThreshold: time.Second,   // 慢 SQL 阈值
+				LogLevel:      logger.Silent, // Log level
+				Colorful:      false,         // 禁用彩色打印
+			},
+		),
 	})
 	l := NewLockerDb(db)
 	l.AddFun("bbbbb", "* * * * * ?", func() {
